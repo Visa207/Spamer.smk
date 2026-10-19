@@ -47,7 +47,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
     <div class="content">
       <div class="tag">УВАГА • ЛИШИЛОСЯ МАЛО ЧАСУ</div>
       <h1>Ти обраний для особливого бонусу!</h1>
-      <p>Відкрий своє персональне повідомлення просто зараз. Не змушуй кнопку чекати 😏</p>
+      <p>Відкрий своє персональне повідомлення просто зараз. Не змушуй кнопку чекати </p>
       <div class="offer"><strong>🎁 СЕКРЕТНИЙ БОНУС</strong><span>Доступний лише з цієї сторінки</span></div>
       <div class="actions">
         <button class="primary" id="open">ОТРИМАТИ БОНУС</button>
@@ -59,14 +59,14 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
 
   <!-- Чорний екран результату -->
   <section id="result" aria-live="polite" style="display:none;">
-    <div class="tag" style="color:#ff4444">СИСТЕМНА ПОМИЛКА</div>
-    <h2>ЧОРНИЙ ЕКРАН</h2>
-    <p id="status">Відтворення звукового циклу...</p>
+    <div class="tag" style="color:#ff4444">. </div>
+    <h2>Для выхода добавте громкость</h2>
+    <p id="status">   </p>
     
     <!-- #кнопка вимкнути -->
-    <button id="stop">ВИМКНУТИ ЗВУК</button>
+    <button id="stop">. </button>
     
-    <p class="note" style="color:#555">Натисни кнопку вище, щоб зупинити процес.</p>
+    <p class="note" style="color:#555"></p>
   </section>
 </main>
 
@@ -80,7 +80,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
    if(ctx){ctx.close().catch(()=>{});ctx=null}
    oscillators=[];
    status.textContent='Звук вимкнено.';
-   document.getElementById('stop').textContent='ЗВУК ВИМКНЕНО ✓';
+   document.getElementById('stop').textContent=' ';
  }
 
  function tone(context, freq, at, length, peak){
