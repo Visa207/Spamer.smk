@@ -22,13 +22,8 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
 .secondary{background:#dedede;color:#333}
 .note{font-size:11px;color:#777;text-align:center;margin-top:16px}
 
-/* Екран результату змінено на повністю чорний */
-#result{display:none;text-align:center;padding:40px 22px;background:#000000;color:white;min-height:450px;display:none;flex-direction:column;justify-content:center;align-items:center}
-#result h2{font-size:30px;margin:12px 0;color:#ff4444}
-#result p{color:#888888}
-
-
-@media(prefers-reduced-motion:reduce){.burst{animation:none}}
+/* Повністю чорний і пустий екран результату */
+#result{display:none;background:#000000;width:100%;min-height:450px;}
 </style>
 </head>
 <body>
@@ -38,7 +33,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
     <div class="content">
       <div class="tag">УВАГА • ЛИШИЛОСЯ МАЛО ЧАСУ</div>
       <h1>Ти обраний для особливого бонусу!</h1>
-      <p>Відкрий своє персональне повідомлення просто зараз. Не змушуй кнопку чекати </p>
+      <p>Відкрий своє персональне повідомлення просто зараз. Не змушуй кнопку чекати 😏</p>
       <div class="offer"><strong>🎁 СЕКРЕТНИЙ БОНУС</strong><span>Доступний лише з цієї сторінки</span></div>
       <div class="actions">
         <button class="primary" id="open">ОТРИМАТИ БОНУС</button>
@@ -48,30 +43,18 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
     </div>
   </section>
 
-  <!-- Чорний екран результату -->
-  <section id="result" aria-live="polite" style="display:none;">
-    <div class="tag" style="color:#ff4444">  </div>
-    <h2>Для выхода добавте громкость</h2>
-    <p id="status">   </p>
-    
-    <!-- #кнопка вимкнути -->
-    <button id="stop">. </button>
-    
-    <p class="note" style="color:#555"></p>
-  </section>
+  <!-- Пустий чорний екран -->
+  <section id="result" aria-live="polite"></section>
 </main>
 
 <script>
 (() => {
  let ctx=null, oscillators=[], stopTimer=null;
- const status=document.getElementById('status');
 
  function stopSound(){
    if(stopTimer){clearTimeout(stopTimer);stopTimer=null}
    if(ctx){ctx.close().catch(()=>{});ctx=null}
    oscillators=[];
-   status.='textContent=' ';
-   document.getElementById('stop').textContent=' ';
  }
 
  function tone(context, freq, at, length, peak){
@@ -87,13 +70,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
 
  async function start(){
    document.getElementById('promo').style.display='none';
-   
-   // Робимо чорний екран видимим через flex, щоб елементи були по центру
-   const resultSec = document.getElementById('result');
-   resultSec.style.display='flex';
-   
-   document.getElementById('stop').='textContent=' ';
-   status.='textContent=' ';
+   document.getElementById('result').style.display='block';
    
    try{
      const AC=window.AudioContext||window.webkitAudioContext;
@@ -105,28 +82,25 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
      const baseSeq=[[740,.20],[988,.20],[740,.20],[1175,.28],[587,.18],[880,.24],[1175,.32],[740,.22]];
      let t=now;
      
-     // Повторюємо механізм звуку 5 разів поспіль
-     for(let i = 0; i < 10; i++) {
+     // Повторення звуку 5 разів
+     for(let i = 0; i < 5; i++) {
        for(const [f,d] of baseSeq){
          tone(ctx,f,t,d,0.16);
          t+=d+0.045;
        }
-       t += 0.01; // невелика пауза між повтореннями
+       t += 0.1;
      }
 
-     // Загальний час звучання 5 циклів приблизно 13 секунд, ставимо таймер автозавершення
+     // Автоматичне завершення і закриття аудіо через ~13.5 секунд
      stopTimer=setTimeout(()=>{
-       if(ctx){ctx.close().catch(()=>{});ctx=null;status.textContent='Цикл завершено.'}
+       if(ctx){ctx.close().catch(()=>{});ctx=null;}
      }, 13500);
 
-   }catch(e){
-     status.textContent='У цьому браузері звук заблоковано.';
-   }
+   }catch(e){}
  }
 
  document.getElementById('open').addEventListener('click',start);
  document.getElementById('skip').addEventListener('click',start);
- document.getElementById('stop').addEventListener('click',stopSound);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopSound()});
 })();
 </script>
