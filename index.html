@@ -21,12 +21,22 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
 .primary{background:#e51b23;color:white;box-shadow:0 4px 0 #9e0f15}
 .secondary{background:#dedede;color:#333}
 .note{font-size:11px;color:#777;text-align:center;margin-top:16px}
-#result{display:none;text-align:center;padding:28px 22px 24px;background:#141421;color:white}
-#result h2{font-size:35px;margin:12px 0;color:#ffcc00}
-#result p{color:#e0deee}
-.burst{font-size:64px;animation:pop .35s infinite alternate}
-@keyframes pop{to{transform:rotate(8deg) scale(1.08)}}
-#stop{background:#ffcc00;color:#151515;margin-top:12px}
+
+/* Екран результату змінено на повністю чорний */
+#result{display:none;text-align:center;padding:40px 22px;background:#000000;color:white;min-height:450px;display:none;flex-direction:column;justify-content:center;align-items:center}
+#result h2{font-size:30px;margin:12px 0;color:#ff4444}
+#result p{color:#888888}
+
+/* #кнопка вимкнути — окремо виділена кнопка зупинки звуку */
+#stop {
+  background: #ffcc00;
+  color: #151515;
+  margin-top: 20px;
+  border: 2px solid #ff4444;
+  box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+  font-size: 18px;
+}
+
 @media(prefers-reduced-motion:reduce){.burst{animation:none}}
 </style>
 </head>
@@ -46,19 +56,25 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
       <p class="note">Натискаючи кнопку, ти відкриваєш повідомлення.</p>
     </div>
   </section>
-  <section id="result" aria-live="polite">
-    <div class="burst">📢</div>
-    <div class="tag" style="color:#ffcc00">ПОВІДОМЛЕННЯ ОТРИМАНО</div>
-    <h2>ЙООООО! 😭</h2>
-    <p id="status">Сюрприз уже тут.</p>
+
+  <!-- Чорний екран результату -->
+  <section id="result" aria-live="polite" style="display:none;">
+    <div class="tag" style="color:#ff4444">СИСТЕМНА ПОМИЛКА</div>
+    <h2>ЧОРНИЙ ЕКРАН</h2>
+    <p id="status">Відтворення звукового циклу...</p>
+    
+    <!-- #кнопка вимкнути -->
     <button id="stop">ВИМКНУТИ ЗВУК</button>
-    <p class="note" style="color:#aaa">Звук короткий. Кнопка зупиняє його одразу.</p>
+    
+    <p class="note" style="color:#555">Натисни кнопку вище, щоб зупинити процес.</p>
   </section>
 </main>
+
 <script>
 (() => {
  let ctx=null, oscillators=[], stopTimer=null;
  const status=document.getElementById('status');
+
  function stopSound(){
    if(stopTimer){clearTimeout(stopTimer);stopTimer=null}
    if(ctx){ctx.close().catch(()=>{});ctx=null}
@@ -66,6 +82,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
    status.textContent='Звук вимкнено.';
    document.getElementById('stop').textContent='ЗВУК ВИМКНЕНО ✓';
  }
+
  function tone(context, freq, at, length, peak){
    const osc=context.createOscillator(), gain=context.createGain();
    osc.type='square'; osc.frequency.setValueAtTime(freq,at);
@@ -76,24 +93,46 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
    osc.connect(gain);gain.connect(context.destination);
    osc.start(at);osc.stop(at+length+0.02);oscillators.push(osc);
  }
+
  async function start(){
    document.getElementById('promo').style.display='none';
-   document.getElementById('result').style.display='block';
+   
+   // Робимо чорний екран видимим через flex, щоб елементи були по центру
+   const resultSec = document.getElementById('result');
+   resultSec.style.display='flex';
+   
    document.getElementById('stop').textContent='ВИМКНУТИ ЗВУК';
-   status.textContent='Сюрприз уже тут.';
+   status.textContent='Відтворення звукового циклу (повторення 5 разів)...';
+   
    try{
      const AC=window.AudioContext||window.webkitAudioContext;
      if(!AC) throw new Error('no audio');
      ctx=new AC();
      await ctx.resume();
      const now=ctx.currentTime+0.04;
-     // A short, intentionally noticeable but bounded synthesized sound.
-     const seq=[[740,.20],[988,.20],[740,.20],[1175,.28],[587,.18],[880,.24],[1175,.32],[740,.22]];
+     
+     const baseSeq=[[740,.20],[988,.20],[740,.20],[1175,.28],[587,.18],[880,.24],[1175,.32],[740,.22]];
      let t=now;
-     for(const [f,d] of seq){tone(ctx,f,t,d,0.16);t+=d+0.045}
-     stopTimer=setTimeout(()=>{if(ctx){ctx.close().catch(()=>{});ctx=null;status.textContent='Повідомлення завершено.'}},2600);
-   }catch(e){status.textContent='У цьому браузері звук заблоковано. Спробуй відкрити сторінку в Chrome і натиснути кнопку.'}
+     
+     // Повторюємо механізм звуку 5 разів поспіль
+     for(let i = 0; i < 5; i++) {
+       for(const [f,d] of baseSeq){
+         tone(ctx,f,t,d,0.16);
+         t+=d+0.045;
+       }
+       t += 0.1; // невелика пауза між повтореннями
+     }
+
+     // Загальний час звучання 5 циклів приблизно 13 секунд, ставимо таймер автозавершення
+     stopTimer=setTimeout(()=>{
+       if(ctx){ctx.close().catch(()=>{});ctx=null;status.textContent='Цикл завершено.'}
+     }, 13500);
+
+   }catch(e){
+     status.textContent='У цьому браузері звук заблоковано.';
+   }
  }
+
  document.getElementById('open').addEventListener('click',start);
  document.getElementById('skip').addEventListener('click',start);
  document.getElementById('stop').addEventListener('click',stopSound);
