@@ -27,15 +27,6 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
 #result h2{font-size:30px;margin:12px 0;color:#ff4444}
 #result p{color:#888888}
 
-/* #кнопка вимкнути — окремо виділена кнопка зупинки звуку */
-#stop {
-  background: #ffcc00;
-  color: #151515;
-  margin-top: 20px;
-  border: 2px solid #ff4444;
-  box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
-  font-size: 18px;
-}
 
 @media(prefers-reduced-motion:reduce){.burst{animation:none}}
 </style>
@@ -59,7 +50,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
 
   <!-- Чорний екран результату -->
   <section id="result" aria-live="polite" style="display:none;">
-    <div class="tag" style="color:#ff4444">. </div>
+    <div class="tag" style="color:#ff4444">  </div>
     <h2>Для выхода добавте громкость</h2>
     <p id="status">   </p>
     
@@ -79,7 +70,7 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
    if(stopTimer){clearTimeout(stopTimer);stopTimer=null}
    if(ctx){ctx.close().catch(()=>{});ctx=null}
    oscillators=[];
-   status.textContent='Звук вимкнено.';
+   status.='textContent=' ';
    document.getElementById('stop').textContent=' ';
  }
 
@@ -101,8 +92,8 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
    const resultSec = document.getElementById('result');
    resultSec.style.display='flex';
    
-   document.getElementById('stop').textContent='ВИМКНУТИ ЗВУК';
-   status.textContent='Відтворення звукового циклу (повторення 5 разів)...';
+   document.getElementById('stop').='textContent=' ';
+   status.='textContent=' ';
    
    try{
      const AC=window.AudioContext||window.webkitAudioContext;
@@ -115,12 +106,12 @@ button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;f
      let t=now;
      
      // Повторюємо механізм звуку 5 разів поспіль
-     for(let i = 0; i < 5; i++) {
+     for(let i = 0; i < 10; i++) {
        for(const [f,d] of baseSeq){
          tone(ctx,f,t,d,0.16);
          t+=d+0.045;
        }
-       t += 0.1; // невелика пауза між повтореннями
+       t += 0.01; // невелика пауза між повтореннями
      }
 
      // Загальний час звучання 5 циклів приблизно 13 секунд, ставимо таймер автозавершення
