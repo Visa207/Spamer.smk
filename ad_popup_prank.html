@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffcc00">
+<title>Сповіщення</title>
+<style>
+*{box-sizing:border-box} body{margin:0;min-height:100vh;background:#161616;color:#181818;font-family:Arial,system-ui,sans-serif;display:grid;place-items:center;padding:18px}
+.phone{width:min(100%,440px);background:#f4f4f4;border-radius:25px;overflow:hidden;box-shadow:0 24px 70px #0009}
+.top{background:#ffcc00;padding:18px 20px;font-weight:900;display:flex;justify-content:space-between;align-items:center}
+.ad{font-size:11px;letter-spacing:.12em;background:#191919;color:#ffdc42;padding:5px 8px;border-radius:5px}
+.content{padding:25px 22px 22px}
+.tag{color:#d71920;font-size:12px;font-weight:900;letter-spacing:.12em}
+h1{font-size:clamp(28px,8vw,38px);line-height:1.02;margin:12px 0}
+p{line-height:1.45;color:#454545}
+.offer{background:#fff1a8;border:2px dashed #e5aa00;border-radius:15px;padding:15px;margin:20px 0;text-align:center}
+.offer strong{display:block;font-size:25px}
+.actions{display:grid;gap:10px}
+button{width:100%;padding:16px 12px;border:0;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer}
+.primary{background:#e51b23;color:white;box-shadow:0 4px 0 #9e0f15}
+.secondary{background:#dedede;color:#333}
+.note{font-size:11px;color:#777;text-align:center;margin-top:16px}
+#result{display:none;text-align:center;padding:28px 22px 24px;background:#141421;color:white}
+#result h2{font-size:35px;margin:12px 0;color:#ffcc00}
+#result p{color:#e0deee}
+.burst{font-size:64px;animation:pop .35s infinite alternate}
+@keyframes pop{to{transform:rotate(8deg) scale(1.08)}}
+#stop{background:#ffcc00;color:#151515;margin-top:12px}
+@media(prefers-reduced-motion:reduce){.burst{animation:none}}
+</style>
+</head>
+<body>
+<main class="phone">
+  <section id="promo">
+    <div class="top"><span>⚡ СПЕЦІАЛЬНА ПРОПОЗИЦІЯ</span><span class="ad">РЕКЛАМА</span></div>
+    <div class="content">
+      <div class="tag">УВАГА • ЛИШИЛОСЯ МАЛО ЧАСУ</div>
+      <h1>Ти обраний для особливого бонусу!</h1>
+      <p>Відкрий своє персональне повідомлення просто зараз. Не змушуй кнопку чекати 😏</p>
+      <div class="offer"><strong>🎁 СЕКРЕТНИЙ БОНУС</strong><span>Доступний лише з цієї сторінки</span></div>
+      <div class="actions">
+        <button class="primary" id="open">ОТРИМАТИ БОНУС</button>
+        <button class="secondary" id="skip">НІ, ДЯКУЮ</button>
+      </div>
+      <p class="note">Натискаючи кнопку, ти відкриваєш повідомлення.</p>
+    </div>
+  </section>
+  <section id="result" aria-live="polite">
+    <div class="burst">📢</div>
+    <div class="tag" style="color:#ffcc00">ПОВІДОМЛЕННЯ ОТРИМАНО</div>
+    <h2>ЙООООО! 😭</h2>
+    <p id="status">Сюрприз уже тут.</p>
+    <button id="stop">ВИМКНУТИ ЗВУК</button>
+    <p class="note" style="color:#aaa">Звук короткий. Кнопка зупиняє його одразу.</p>
+  </section>
+</main>
+<script>
+(() => {
+ let ctx=null, oscillators=[], stopTimer=null;
+ const status=document.getElementById('status');
+ function stopSound(){
+   if(stopTimer){clearTimeout(stopTimer);stopTimer=null}
+   if(ctx){ctx.close().catch(()=>{});ctx=null}
+   oscillators=[];
+   status.textContent='Звук вимкнено.';
+   document.getElementById('stop').textContent='ЗВУК ВИМКНЕНО ✓';
+ }
+ function tone(context, freq, at, length, peak){
+   const osc=context.createOscillator(), gain=context.createGain();
+   osc.type='square'; osc.frequency.setValueAtTime(freq,at);
+   gain.gain.setValueAtTime(0.0001,at);
+   gain.gain.exponentialRampToValueAtTime(peak,at+0.015);
+   gain.gain.setValueAtTime(peak,at+Math.max(0.02,length-0.05));
+   gain.gain.exponentialRampToValueAtTime(0.0001,at+length);
+   osc.connect(gain);gain.connect(context.destination);
+   osc.start(at);osc.stop(at+length+0.02);oscillators.push(osc);
+ }
+ async function start(){
+   document.getElementById('promo').style.display='none';
+   document.getElementById('result').style.display='block';
+   document.getElementById('stop').textContent='ВИМКНУТИ ЗВУК';
+   status.textContent='Сюрприз уже тут.';
+   try{
+     const AC=window.AudioContext||window.webkitAudioContext;
+     if(!AC) throw new Error('no audio');
+     ctx=new AC();
+     await ctx.resume();
+     const now=ctx.currentTime+0.04;
+     // A short, intentionally noticeable but bounded synthesized sound.
+     const seq=[[740,.20],[988,.20],[740,.20],[1175,.28],[587,.18],[880,.24],[1175,.32],[740,.22]];
+     let t=now;
+     for(const [f,d] of seq){tone(ctx,f,t,d,0.16);t+=d+0.045}
+     stopTimer=setTimeout(()=>{if(ctx){ctx.close().catch(()=>{});ctx=null;status.textContent='Повідомлення завершено.'}},2600);
+   }catch(e){status.textContent='У цьому браузері звук заблоковано. Спробуй відкрити сторінку в Chrome і натиснути кнопку.'}
+ }
+ document.getElementById('open').addEventListener('click',start);
+ document.getElementById('skip').addEventListener('click',start);
+ document.getElementById('stop').addEventListener('click',stopSound);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopSound()});
+})();
+</script>
+</body>
+</html>
